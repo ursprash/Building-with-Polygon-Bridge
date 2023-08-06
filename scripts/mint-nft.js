@@ -10,7 +10,7 @@ const contract = require("../artifacts/contracts/MyNFT.sol/MyNFT.json");
 
 //console.log(JSON.stringify(contract.abi));
 
-const contractAddress = "0xa068867eFe8138C9C69111135CC14CF1C1FF090A";
+const contractAddress = "0xE9181dbAC9B0D9380d3B362f1f49074Bd67Aad55";
 const nftContract = new web3.eth.Contract(contract.abi, contractAddress);
 //create transaction
 async function mintNFT(tokenURI) {
