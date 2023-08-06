@@ -1,40 +1,39 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// You can also run a script with `npx hardhat run <script>`. If you do that, Hardhat
-// will compile your contracts, add the Hardhat Runtime Environment's members to the
-// global scope, and execute the script.
 const hre = require("hardhat");
 const fxRootContractABI = require("../fxRootContractABI.json");
 const tokenContractJSON = require("../artifacts/contracts/MyNFT.sol/MyNFT.json");
 
-const tokenAddress = "0xA3453E96913962aAAd0AE9aFd627225041104aAf"; 
-
-
-const FxERC721RootTunnel="0xF9bc4a80464E48369303196645e876c8C7D972de";
-const walletAddress = "0x0D53f8320766e9384846Da681dbd51db9D1Ef228"; 
+const tokenAddress = "0xE9181dbAC9B0D9380d3B362f1f49074Bd67Aad55";
+const FxERC721RootTunnel = "0xF9bc4a80464E48369303196645e876c8C7D972de";
+const walletAddress = "0x0D53f8320766e9384846Da681dbd51db9D1Ef228";
 
 async function main() {
+  const contract = await hre.ethers.getContractFactory("MyNFT"); // Replace "MyNFT" with your actual NFT contract name
+  const tokenContract = await hre.ethers.getContractAt(tokenContractJSON.abi, tokenAddress);
+  const fxContract = await hre.ethers.getContractAt(fxRootContractABI, FxERC721RootTunnel);
 
-    const tokenContract = await hre.ethers.getContractAt(contract.abi, tokenAddress);
-    const fxContract = await hre.ethers.getContractAt(fxRootContractABI, FxERC721RootTunnel);
+  const approveTx = await tokenContract.approve(FxERC721RootTunnel, 1);
+  await approveTx.wait();
 
-    const approveTx = await tokenContract.approve(FxERC721RootTunnel, 500);
-    await approveTx.wait();
+  console.log('Approval confirmed');
 
-    console.log('Approval confirmed');
+  const nftAddresses = [tokenAddress]; // Add more NFT contract addresses if needed
+  const tokenIds = [1];
 
-
-    const depositTx = await fxContract.deposit(tokenAddress, walletAddress, 500, "0x6556");
-    await depositTx.wait();
-
-    console.log("Tokens deposited");
-  
+  async function depositNFTs(fxContract, nftAddresses, tokenIds, walletAddress) {
+    for (let i = 0; i < nftAddresses.length; i++) {
+      const nftAddress = nftAddresses[i];
+      const tokenId = tokenIds[i];
+      const depositTx = await fxContract.deposit(nftAddress, walletAddress, tokenId, "0x6556");
+      await depositTx.wait();
+    }
   }
-  
-  // We recommend this pattern to be able to use async/await everywhere
-  // and properly handle errors.
-  main().catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-  });
+
+  await depositNFTs(fxContract, nftAddresses, tokenIds, walletAddress);
+
+  console.log("Tokens deposited");
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
